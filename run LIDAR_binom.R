@@ -1,6 +1,6 @@
 rm(list=ls(all=TRUE))
 library('Rcpp')
-set.seed(59)
+set.seed(166)
 
 #get functions
 setwd('U:\\GIT_models\\LIDAR_binom')
@@ -18,12 +18,12 @@ n=data.matrix(dat)
 
 #useful stuff
 ncomm=10
-ngibbs=3000
+ngibbs=10000
 nburn=ngibbs/2
 
 #priors
-a.phi=1
-b.phi=1
+a.phi=0.1
+b.phi=0.1
 gamma=0.1
 
 #run gibbs
@@ -31,9 +31,10 @@ mod=LIDAR_binom(y=y,n=n,ncomm=ncomm,a.phi=a.phi,b.phi=b.phi,
                 gamma=gamma,ngibbs=ngibbs,nburn=nburn)
 
 plot(mod$llk,type='l')
-seq1=500:ngibbs
+seq1=nburn:ngibbs
 plot(mod$llk[seq1],type='l')
 
+# seq1=(2500-nburn):(ngibbs-nburn)
 tmp=apply(mod$theta,2,mean)
 nloc=nrow(y)
 theta.estim=matrix(tmp,nloc,ncomm)

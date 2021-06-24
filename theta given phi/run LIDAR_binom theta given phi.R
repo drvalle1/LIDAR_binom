@@ -28,8 +28,6 @@ ngibbs=3000
 nburn=ngibbs/2
 
 #priors
-a.phi=1
-b.phi=1
 gamma=0.1
 
 #run gibbs

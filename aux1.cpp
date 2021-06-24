@@ -11,27 +11,13 @@ using namespace Rcpp;
 /***************************************************************************************************************************/
 
 // This function makes multinomial draws
+//Got this from https://stackoverflow.com/questions/24618370/using-rmultinom-with-rcpp
 // [[Rcpp::export]]
-IntegerVector rmultinom1(NumericVector runif1, NumericVector prob, int ncommun) {
-  IntegerVector res(ncommun);
-  double probcum = prob(0);
-  
-  NumericVector runif2 = Rcpp::clone(runif1);
-  runif2.sort(false);
-  int oo=0;
-  
-  for (int i = 0; i < runif2.length(); i++) {
-    if (runif2(i)< probcum){
-      res(oo)=res(oo)+1;
-    } else {
-      while (runif2(i)>probcum){
-        oo=oo+1;
-        probcum = probcum + prob(oo);  
-      }
-      res(oo)=res(oo)+1;
-    }
-  }
-  return res;
+IntegerVector rmultinom_1(NumericVector probs, int size) {
+  int k = probs.size();
+  IntegerVector ans(k);
+  rmultinom(size, probs.begin(), k, ans.begin());
+  return(ans);
 }
 
 //' This function samples zs when ys=1
@@ -58,8 +44,8 @@ List samplez1(NumericMatrix theta, NumericMatrix phi,
       prob=prob/sum(prob);
       
       //multinomial draw
-      znew=rmultinom1(runif(y(i,j)),prob,ncommun);
-      
+      znew=rmultinom_1(prob, y(i,j));
+
       for (int k=0; k<ncommun; k++){
         ArrayLSK(i,j,k)=znew[k];  
       }
@@ -98,8 +84,8 @@ List samplez0(NumericMatrix theta, NumericMatrix OneMinusPhi,
       prob=prob/sum(prob);
       
       //multinomial draw
-      znew=rmultinom1(runif(NminusY(i,j)),prob,ncommun);
-      
+      znew=rmultinom_1(prob, NminusY(i,j));
+
       for (int k=0; k<ncommun; k++){
         ArrayLSK(i,j,k)=znew[k];  
       }
