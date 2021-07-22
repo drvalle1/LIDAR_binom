@@ -1,4 +1,5 @@
-LIDAR_binom=function(y,n,ncomm,a.phi,b.phi,gamma,ngibbs,nburn){
+LIDAR_binom=function(y,n,ncomm,a.phi,b.phi,gamma,ngibbs,nburn,
+                     theta.post,phi.post){
   #useful stuff
   nloc=nrow(y)
   nspp=ncol(y)
@@ -23,8 +24,11 @@ LIDAR_binom=function(y,n,ncomm,a.phi,b.phi,gamma,ngibbs,nburn){
   }
 
   #to store outcomes from gibbs sampler
-  theta.out=matrix(NA,ngibbs,ncomm*nloc)
-  phi.out=matrix(NA,ngibbs,ncomm*nspp)
+  if (theta.post)  theta.out=matrix(NA,ngibbs,ncomm*nloc)
+  if (!theta.post) theta.out=matrix(0,nloc,ncomm)
+  if (phi.post)  phi.out=matrix(NA,ngibbs,ncomm*nspp)
+  if (!phi.post) phi.out=matrix(0,ncomm,nspp)
+  
   llk=rep(NA,ngibbs)
   
   #run gibbs sampler
@@ -69,9 +73,19 @@ LIDAR_binom=function(y,n,ncomm,a.phi,b.phi,gamma,ngibbs,nburn){
     
     #calculate logl and store results  
     llk[i]=sum(dbinom(y,size=n,prob=prob,log=T))
-    theta.out[i,]=theta
-    phi.out[i,]=phi
+    
+    if (theta.post) theta.out[i,]=theta
+    if (!theta.post & i>=nburn) theta.out=theta.out+theta
+    if (phi.post) phi.out[i,]=phi
+    if (!phi.post & i>=nburn) phi.out=phi.out+phi
   }
   seq1=nburn:ngibbs
-  list(llk=llk,theta=theta.out[seq1,],phi=phi.out[seq1,])  
+  nseq1=length(seq1)
+  res=list(llk=llk)
+  if (theta.post)  res$theta=theta.out[seq1,]
+  if (!theta.post) res$theta=theta.out/nseq1
+  if (phi.post)    res$phi=phi.out[seq1,]
+  if (!phi.post)   res$phi=phi.out/nseq1
+  
+  res  
 }
